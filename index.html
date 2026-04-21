@@ -379,7 +379,7 @@ function addJob() {
       category: job.category,
       due: job.due || '',
       notes: job.notes || '',
-      message: `Hi ${s.name}, you have a new job: "${job.title}". View the board: https://sanpedro.vercel.app`
+      message: `Hi ${s.name}, new job assigned: ${job.title}. View board: https://sanpedro.vercel.app`
     })
   }).then(() => toast('Job assigned — SMS sent'))
     .catch(() => toast('Job assigned — SMS failed, check Make.com'));
