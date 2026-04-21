@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<title>San Pedro Jobs</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { color-scheme: light only; }
+
+body {
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 2px solid #000;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 10;
+}
+.logo { font-size: 13px; font-weight: bold; letter-spacing: 0.06em; text-transform: uppercase; }
+.header-btn { font-size: 12px; cursor: pointer; text-decoration: underline; }
+
+.stats-row { display: flex; border-bottom: 1px solid #000; }
+.stat { flex: 1; padding: 14px 0; text-align: center; border-right: 1px solid #000; }
+.stat:last-child { border-right: none; }
+.stat-num { font-size: 22px; font-weight: bold; }
+.stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-top: 2px; }
+
+.section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: #888; padding: 12px 20px 8px; }
+
+.job-card { border-bottom: 1px solid #e0e0e0; }
+.job-card.priority-high { border-left: 3px solid #000; }
+.job-card.priority-medium { border-left: 3px solid #aaa; }
+.job-card.priority-low { border-left: 3px solid #ddd; }
+
+.job-header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; cursor: pointer; }
+
+.assignee-badge {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #000; color: #fff;
+  font-size: 11px; font-weight: bold;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; text-transform: uppercase;
+}
+
+.job-main { flex: 1; min-width: 0; }
+.job-title { font-size: 14px; font-weight: bold; line-height: 1.3; }
+.job-meta { font-size: 11px; color: #888; margin-top: 3px; }
+
+.status-badge {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 3px 8px; border: 1px solid #000; border-radius: 2px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.status-badge.inprogress { background: #000; color: #fff; }
+.status-badge.done { color: #ccc; border-color: #ccc; }
+
+.job-expand { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+.job-expand.open { max-height: 200px; }
+.job-expand-inner { padding: 12px 20px 16px; border-top: 1px solid #e0e0e0; }
+.job-notes { font-size: 12px; color: #555; line-height: 1.5; margin-bottom: 12px; }
+
+.status-btns { display: flex; gap: 8px; }
+.status-btn {
+  flex: 1; padding: 10px 4px;
+  border: 1px solid #000; background: #fff; color: #000;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  cursor: pointer; text-align: center; border-radius: 2px;
+}
+.status-btn.active { background: #000; color: #fff; }
+.status-btn:active { background: #000; color: #fff; }
+
+.empty { text-align: center; padding: 60px 20px; color: #aaa; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* ADMIN */
+#admin-view { display: none; }
+#admin-view.active { display: block; }
+
+.nav-tabs { display: flex; border-bottom: 1px solid #000; }
+.nav-tab {
+  flex: 1; padding: 12px; text-align: center;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+  cursor: pointer; border-right: 1px solid #000; color: #888;
+}
+.nav-tab:last-child { border-right: none; }
+.nav-tab.active { background: #000; color: #fff; }
+
+.form-wrap { padding: 20px; }
+.form-row { margin-bottom: 14px; }
+.form-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: #888; display: block; margin-bottom: 5px; }
+.form-input, .form-select, .form-textarea {
+  width: 100%; border: 1px solid #000; border-radius: 2px;
+  font-family: Helvetica, Arial, sans-serif; font-size: 14px;
+  padding: 10px 12px; outline: none; background: #fff; color: #000; -webkit-appearance: none;
+}
+.form-textarea { resize: none; height: 64px; }
+.submit-btn {
+  width: 100%; padding: 14px; background: #000; color: #fff; border: none;
+  font-family: Helvetica, Arial, sans-serif; font-size: 13px; font-weight: bold;
+  text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; border-radius: 2px; margin-top: 4px;
+}
+.submit-btn:active { background: #333; }
+
+.admin-job { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #e0e0e0; }
+.admin-job-info { flex: 1; min-width: 0; }
+.admin-job-title { font-weight: bold; font-size: 13px; }
+.admin-job-meta { font-size: 11px; color: #888; margin-top: 2px; }
+.delete-btn {
+  background: none; border: 1px solid #ccc; color: #aaa;
+  width: 28px; height: 28px; border-radius: 2px; cursor: pointer; font-size: 12px; flex-shrink: 0;
+}
+.delete-btn:active { border-color: #000; color: #000; }
+
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: #000; color: #fff; padding: 10px 20px;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+  border-radius: 2px; transition: transform 0.25s; z-index: 100; white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  z-index: 200; display: flex; align-items: flex-end;
+}
+.modal { background: #fff; border-top: 2px solid #000; padding: 24px 20px 40px; width: 100%; }
+.modal-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: #888; margin-bottom: 10px; }
+.modal-to { font-size: 11px; color: #888; margin-bottom: 10px; }
+.sms-bubble { background: #f5f5f5; border: 1px solid #e0e0e0; padding: 12px; font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-copy { flex: 1; padding: 13px; background: #000; color: #fff; border: none; font-family: Helvetica, Arial, sans-serif; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; }
+.modal-dismiss { padding: 13px 20px; background: #fff; color: #000; border: 1px solid #000; font-family: Helvetica, Arial, sans-serif; font-size: 12px; cursor: pointer; }
+
+.autocomplete-wrap { position: relative; }
+.autocomplete-list {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: #fff; border: 1px solid #000; border-top: none;
+  z-index: 50; max-height: 180px; overflow-y: auto;
+}
+.autocomplete-item { padding: 10px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid #e0e0e0; }
+.autocomplete-item:last-child { border-bottom: none; }
+.autocomplete-item:active { background: #f5f5f5; }
+.autocomplete-cat { font-size: 10px; color: #888; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+
+<!-- BOARD -->
+<div id="board-view">
+  <div class="header">
+    <div class="logo">San Pedro Jobs</div>
+    <div class="header-btn" onclick="openAdmin()">Admin</div>
+  </div>
+  <div class="stats-row" id="board-stats"></div>
+  <div class="section-label">Active Jobs</div>
+  <div id="board-list"></div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-view">
+  <div class="header">
+    <div class="logo">Admin</div>
+    <div class="header-btn" onclick="closeAdmin()">← Board</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="adminTab('add',this)">Add Job</div>
+    <div class="nav-tab" onclick="adminTab('all',this)">All Jobs</div>
+  </div>
+  <div id="admin-add">
+    <div class="form-wrap">
+      <div class="form-row">
+        <label class="form-label">Job</label>
+        <div class="autocomplete-wrap">
+          <input class="form-input" id="job-title" placeholder="e.g. Service grinder #2" autocomplete="off" oninput="onTitleInput(this.value)" onblur="hideAC()" />
+          <div class="autocomplete-list" id="ac-list" style="display:none;"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Category</label>
+        <select class="form-select" id="job-category">
+          <option>Servicing</option>
+          <option>Dial In</option>
+          <option>Cleaning</option>
+          <option>Stock</option>
+          <option>Equipment</option>
+          <option>Pickup / Errand</option>
+          <option>Training</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Assign To</label>
+        <select class="form-select" id="job-assignee"></select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Priority</label>
+        <select class="form-select" id="job-priority">
+          <option value="high">High</option>
+          <option value="medium" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Due</label>
+        <input class="form-input" id="job-due" type="date" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="job-notes" placeholder="Optional..."></textarea>
+      </div>
+      <button class="submit-btn" onclick="addJob()">Assign Job</button>
+    </div>
+  </div>
+  <div id="admin-all" style="display:none;">
+    <div id="admin-list"></div>
+  </div>
+</div>
+
+<!-- SMS MODAL -->
+<div id="sms-overlay" class="modal-overlay" style="display:none;" onclick="dismissModal(event)">
+  <div class="modal">
+    <div class="modal-title">Send via Notifier</div>
+    <div class="modal-to" id="modal-to"></div>
+    <div class="sms-bubble" id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="modal-copy" onclick="copySMS()">Copy</button>
+      <button class="modal-dismiss" onclick="closeModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STAFF = [
+  { id: 'maggie',    name: 'Maggie',    role: 'Admin',             phone: '0420903404' },
+  { id: 'jack',      name: 'Jack',      role: 'Factory / Support', phone: '0490360584' },
+  { id: 'johnny',    name: 'Johnny',    role: 'Coffee Tech',       phone: '0491665755' },
+  { id: 'michael',   name: 'Michael',   role: 'Support',           phone: '0421113421' },
+  { id: 'ali',       name: 'Ali',       role: 'Factory / Support', phone: '0401051189' },
+  { id: 'akram',     name: 'Akram',     role: 'Factory / Support', phone: '0422446205' },
+  { id: 'jasmine',   name: 'Jasmine',   role: 'Factory / Support', phone: '0493164675' },
+  { id: 'julian',    name: 'Julian',    role: 'Factory / Support', phone: '0406982257' },
+  { id: 'lukas',     name: 'Lukas',     role: 'NSW Coffee Tech',   phone: '0414292358' },
+  { id: 'chris',     name: 'Chris',     role: 'Coffee Tech',       phone: '0414166019' },
+  { id: 'sabastian', name: 'Sabastian', role: 'Coffee Tech',       phone: '0413391411' },
+  { id: 'dino',      name: 'Dino',      role: 'Grinder Tech',      phone: '0420680861' },
+  { id: 'dror',      name: 'Dror',      role: 'Machine Tech',      phone: '0417550055' },
+  { id: 'joseph',    name: 'Joseph',    role: 'Support',           phone: '0400899899' },
+  { id: 'moses',     name: 'Moses',     role: 'Director',          phone: '0400062462' },
+  { id: 'peter',     name: 'Peter',     role: 'Director',          phone: '0423389923' },
+];
+
+let jobs = JSON.parse(localStorage.getItem('sp_jobs') || '[]');
+const save = () => localStorage.setItem('sp_jobs', JSON.stringify(jobs));
+
+// ── BOARD ──────────────────────────────────────────────────────────
+function renderBoard() {
+  const active = jobs.filter(j => j.status !== 'done');
+  const todo = active.filter(j => j.status === 'todo').length;
+  const inp = active.filter(j => j.status === 'inprogress').length;
+  const done = jobs.filter(j => j.status === 'done').length;
+
+  document.getElementById('board-stats').innerHTML = `
+    <div class="stat"><div class="stat-num">${todo}</div><div class="stat-label">To Do</div></div>
+    <div class="stat"><div class="stat-num">${inp}</div><div class="stat-label">In Progress</div></div>
+    <div class="stat"><div class="stat-num">${done}</div><div class="stat-label">Done</div></div>
+  `;
+
+  const list = document.getElementById('board-list');
+  if (!active.length) { list.innerHTML = `<div class="empty">All clear</div>`; return; }
+
+  const sorted = [...active].sort((a,b) => {
+    const p = {high:0,medium:1,low:2};
+    return p[a.priority] !== p[b.priority] ? p[a.priority]-p[b.priority] : (a.status==='inprogress'?1:0)-(b.status==='inprogress'?1:0);
+  });
+
+  list.innerHTML = sorted.map(job => {
+    const s = STAFF.find(x => x.id === job.assignee);
+    const ini = s ? s.name.slice(0,2).toUpperCase() : '?';
+    return `
+      <div class="job-card priority-${job.priority}">
+        <div class="job-header" onclick="toggle('${job.id}')">
+          <div class="assignee-badge">${ini}</div>
+          <div class="job-main">
+            <div class="job-title">${job.title}</div>
+            <div class="job-meta">${s?.name||'—'} · ${job.category}${job.due?' · Due '+fmtDate(job.due):''}</div>
+          </div>
+          <span class="status-badge ${job.status}">${slabel(job.status)}</span>
+        </div>
+        <div class="job-expand" id="exp-${job.id}">
+          <div class="job-expand-inner">
+            ${job.notes?`<div class="job-notes">${job.notes}</div>`:''}
+            <div class="status-btns">
+              <button class="status-btn ${job.status==='todo'?'active':''}" onclick="setStatus('${job.id}','todo')">To Do</button>
+              <button class="status-btn ${job.status==='inprogress'?'active':''}" onclick="setStatus('${job.id}','inprogress')">In Progress</button>
+              <button class="status-btn ${job.status==='done'?'active':''}" onclick="setStatus('${job.id}','done')">Done ✓</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggle(id) { document.getElementById('exp-'+id).classList.toggle('open'); }
+
+function setStatus(id, status) {
+  const j = jobs.find(x => x.id===id);
+  if (!j) return;
+  j.status = status;
+  save();
+  renderBoard();
+  toast(status==='done' ? 'Done — off the board' : 'Updated');
+}
+
+// ── ADMIN ──────────────────────────────────────────────────────────
+function openAdmin() {
+  document.getElementById('board-view').style.display = 'none';
+  document.getElementById('admin-view').classList.add('active');
+  document.getElementById('job-assignee').innerHTML = STAFF.map(s=>`<option value="${s.id}">${s.name} — ${s.role}</option>`).join('');
+  document.getElementById('job-due').value = new Date().toISOString().split('T')[0];
+  renderAdminList();
+}
+
+function closeAdmin() {
+  document.getElementById('admin-view').classList.remove('active');
+  document.getElementById('board-view').style.display = 'block';
+  renderBoard();
+}
+
+function adminTab(tab, el) {
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('admin-add').style.display = tab==='add'?'block':'none';
+  document.getElementById('admin-all').style.display = tab==='all'?'block':'none';
+}
+
+function addJob() {
+  const title = document.getElementById('job-title').value.trim();
+  if (!title) { toast('Enter a job'); return; }
+  const job = {
+    id: Date.now().toString(),
+    title,
+    category: document.getElementById('job-category').value,
+    assignee: document.getElementById('job-assignee').value,
+    priority: document.getElementById('job-priority').value,
+    due: document.getElementById('job-due').value,
+    notes: document.getElementById('job-notes').value.trim(),
+    status: 'todo',
+    createdAt: new Date().toISOString(),
+  };
+  jobs.push(job); save();
+  document.getElementById('job-title').value = '';
+  document.getElementById('job-notes').value = '';
+  const s = STAFF.find(x=>x.id===job.assignee);
+
+  // Fire Make.com webhook — triggers Notifier SMS to assignee
+  fetch('https://hook.eu1.make.com/c7bbi7isb1xvre1iqf888yanea7hocz5', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: s.name,
+      phone: s.phone,
+      job_title: job.title,
+      category: job.category,
+      due: job.due || '',
+      notes: job.notes || '',
+      message: `Hi ${s.name}, you have a new job: "${job.title}". View the board: https://sanpedro.vercel.app`
+    })
+  }).then(() => toast('Job assigned — SMS sent'))
+    .catch(() => toast('Job assigned — SMS failed, check Make.com'));
+
+  renderAdminList();
+}
+
+function renderAdminList() {
+  const list = document.getElementById('admin-list');
+  if (!jobs.length) { list.innerHTML=`<div class="empty">No jobs yet</div>`; return; }
+  list.innerHTML = [...jobs].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).map(job=>{
+    const s = STAFF.find(x=>x.id===job.assignee);
+    return `
+      <div class="admin-job">
+        <div class="admin-job-info">
+          <div class="admin-job-title">${job.title}</div>
+          <div class="admin-job-meta">${s?.name||'—'} · ${job.category} · ${slabel(job.status)}</div>
+        </div>
+        <button class="delete-btn" onclick="delJob('${job.id}')">✕</button>
+      </div>`;
+  }).join('');
+}
+
+function delJob(id) { jobs=jobs.filter(j=>j.id!==id); save(); renderAdminList(); toast('Removed'); }
+
+// ── AUTOCOMPLETE ───────────────────────────────────────────────────
+function onTitleInput(val) {
+  const el = document.getElementById('ac-list');
+  if (!val.trim()) { el.style.display='none'; return; }
+  const seen = new Set();
+  const matches = [...jobs].reverse().filter(j=>{
+    if (seen.has(j.title.toLowerCase())||!j.title.toLowerCase().includes(val.toLowerCase())) return false;
+    seen.add(j.title.toLowerCase()); return true;
+  }).slice(0,6);
+  if (!matches.length) { el.style.display='none'; return; }
+  el.innerHTML = matches.map(j=>`
+    <div class="autocomplete-item" onmousedown="pickAC('${j.title.replace(/'/g,"\\'")}','${j.category}')">
+      <div>${j.title}</div><div class="autocomplete-cat">${j.category}</div>
+    </div>`).join('');
+  el.style.display='block';
+}
+function pickAC(t,c) {
+  document.getElementById('job-title').value=t;
+  document.getElementById('job-category').value=c;
+  document.getElementById('ac-list').style.display='none';
+}
+function hideAC() { setTimeout(()=>{ document.getElementById('ac-list').style.display='none'; },150); }
+
+// ── MODAL ──────────────────────────────────────────────────────────
+let _sms='';
+function showModal(text, phone) {
+  _sms=text;
+  document.getElementById('modal-body').textContent=text;
+  document.getElementById('modal-to').textContent='To: '+phone;
+  document.getElementById('sms-overlay').style.display='flex';
+}
+function closeModal() { document.getElementById('sms-overlay').style.display='none'; toast('Job assigned'); }
+function dismissModal(e) { if(e.target.id==='sms-overlay') closeModal(); }
+function copySMS() { navigator.clipboard.writeText(_sms).then(()=>{ toast('Copied'); closeModal(); }); }
+
+// ── UTILS ──────────────────────────────────────────────────────────
+function slabel(s) { return {todo:'To Do',inprogress:'In Progress',done:'Done'}[s]||s; }
+function fmtDate(d) { return new Date(d+'T00:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'}); }
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+renderBoard();
+</script>
+</body>
+</html>
