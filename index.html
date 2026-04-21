@@ -368,21 +368,21 @@ function addJob() {
   document.getElementById('job-notes').value = '';
   const s = STAFF.find(x=>x.id===job.assignee);
 
-  // Fire Make.com webhook — triggers Notifier SMS to assignee
-  fetch('https://hook.eu1.make.com/c7bbi7isb1xvre1iqf888yanea7hocz5', {
+  const rawMessage = `Hi ${s.name}, new job assigned: ${job.title}. View board: https://sanpedro.vercel.app`;
+
+  fetch('https://api.notifyre.com/sms/send', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-token': 'LViDv9TO6Z36hevnvSFSPtLQ8h2MlsuFll7GPpJeMis.au'
+    },
     body: JSON.stringify({
-      name: s.name,
-      phone: s.phone,
-      job_title: job.title,
-      category: job.category,
-      due: job.due || '',
-      notes: job.notes || '',
-      message: `Hi ${s.name}, new job assigned: ${job.title}. View board: https://sanpedro.vercel.app`
+      recipients: [s.phone],
+      body: rawMessage,
+      from: 'SanPedro'
     })
   }).then(() => toast('Job assigned — SMS sent'))
-    .catch(() => toast('Job assigned — SMS failed, check Make.com'));
+    .catch(() => toast('Job assigned — SMS failed'));
 
   renderAdminList();
 }
