@@ -367,14 +367,13 @@ function addJob() {
   document.getElementById('job-title').value = '';
   document.getElementById('job-notes').value = '';
   const s = STAFF.find(x=>x.id===job.assignee);
+  const phone = '61' + s.phone.replace(/^0/, '');
+  const message = 'Hi ' + s.name + ', new job: ' + job.title + '. Board: https://sanpedro-jobs.vercel.app';
 
   fetch('https://hook.eu1.make.com/c7bbi7isb1xvre1iqf888yanea7hocz5', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      phone: s.phone,
-      message: 'Hi ' + s.name + ', new job: ' + job.title + '. Board: https://sanpedro-jobs.vercel.app'
-    })
+    body: JSON.stringify({ phone: phone, message: message })
   }).then(() => toast('Job assigned — SMS sent'))
     .catch(() => toast('Job assigned — SMS failed'));
 
