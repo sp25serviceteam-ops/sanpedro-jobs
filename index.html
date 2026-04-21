@@ -368,18 +368,12 @@ function addJob() {
   document.getElementById('job-notes').value = '';
   const s = STAFF.find(x=>x.id===job.assignee);
 
-  const rawMessage = `Hi ${s.name}, new job assigned: ${job.title}. View board: https://sanpedro.vercel.app`;
-
-  fetch('https://api.notifyre.com/sms/send', {
+  fetch('https://hook.eu1.make.com/c7bbi7isb1xvre1iqf888yanea7hocz5', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-token': 'LViDv9TO6Z36hevnvSFSPtLQ8h2MlsuFll7GPpJeMis.au'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      recipients: [s.phone],
-      body: rawMessage,
-      from: 'SanPedro'
+      phone: s.phone,
+      message: 'Hi ' + s.name + ', new job: ' + job.title + '. Board: https://sanpedro-jobs.vercel.app'
     })
   }).then(() => toast('Job assigned — SMS sent'))
     .catch(() => toast('Job assigned — SMS failed'));
